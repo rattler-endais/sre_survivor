@@ -69,11 +69,55 @@ tiempo_invulnerabilidad = 1000
 corazon_img = pygame.image.load(imagen("corazon.png"))
 corazon_img = pygame.transform.scale(corazon_img, (32, 32))
 
+# Enemigos
+class Enemigo:
+    imagen = None
+    velocidad = 0
+    ancho = 0
+    alto = 0
+ 
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+
+        if cls.imagen is not None:
+            cls.ancho = cls.imagen.get_width()
+            cls.alto = cls.imagen.get_height()
+ 
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.imagen = self.__class__.imagen
+        self.velocidad = self.__class__.velocidad
+        self.ancho = self.__class__.ancho
+        self.alto = self.__class__.alto
+
+    def dibujar(self):
+        pantalla.blit(self.imagen, (self.x, self.y))
+
+    def mover_hacia(self, objetivo_x, objetivo_y):
+        dx = objetivo_x - self.x
+        dy = objetivo_y - self.y
+        distancia = (dx ** 2 + dy ** 2) ** 0.5
+
+        if distancia > 0:
+            self.x += (dx / distancia) * self.velocidad
+            self.y += (dy / distancia) * self.velocidad
+
+    def obtener_centro(self):
+        return self.x + self.ancho / 2, self.y + self.alto / 2
+
+    def obtener_rect(self):
+        return pygame.Rect(self.x, self.y, self.ancho, self.alto)
+
+class Hacker(Enemigo):
+    imagen = pygame.transform.scale(pygame.image.load(imagen("hacker.png")), (84, 100))
+    velocidad = 0.5
+
+    def __init__(self, x, y):
+        super().__init__(x, y)
+
 # Hacker
-hacker_img = pygame.image.load(imagen("hacker.png"))
-hacker_img = pygame.transform.scale(hacker_img, (84, 100))
 hackers = []
-velocidad_hacker = 0.5
 ultimo_hacker = 0
 tiempo_entre_hackers = 3000
 
@@ -92,7 +136,6 @@ boss_img = pygame.image.load(imagen("boss.png"))
 boss_img = pygame.transform.scale(boss_img, (138, 150))
 boss_x = ANCHOPANTALLA // 2 - boss_img.get_width() // 2
 boss_y = (ALTOPANTALLA - boss_img.get_height() - 50)
-
 
 # Puntaje y tiempo
 puntaje = 0
@@ -115,9 +158,6 @@ def personaje(x,y, tiempo_actual):
 
     pantalla.blit(personaje_img, (x, y))
 
-def hacker(x,y):
-    pantalla.blit(hacker_img, (x, y))
-
 def teclado(x, y):
     pantalla.blit(teclado_img, (x, y))
 
@@ -131,25 +171,26 @@ def dibujar_vidas():
 def crear_hacker():
     posiciones_por_borde = {
         "arriba": {
-            "x": random.randrange(0, ANCHOPANTALLA - 84),
-            "y": -100
+            "x": random.randrange(0, ANCHOPANTALLA - Hacker.ancho),
+            "y": -Hacker.alto
         },
         "abajo": {
-            "x": random.randrange(0, ANCHOPANTALLA - 84),
+            "x": random.randrange(0, ANCHOPANTALLA - Hacker.ancho),
             "y": ALTOPANTALLA
         },
         "izquierda": {
-            "x": -84,
-            "y": random.randrange(0, ALTOPANTALLA - 100)
+            "x": -Hacker.ancho,
+            "y": random.randrange(0, ALTOPANTALLA - Hacker.alto)
         },
         "derecha": {
             "x": ANCHOPANTALLA,
-            "y": random.randrange(0, ALTOPANTALLA - 100)
+            "y": random.randrange(0, ALTOPANTALLA - Hacker.alto)
         }
     }
 
     borde = random.choice(list(posiciones_por_borde.keys()))
-    hackers.append(posiciones_por_borde[borde])
+    posicion = posiciones_por_borde[borde]
+    hackers.append(Hacker(posicion["x"], posicion["y"]))
 
 def obtener_hacker_mas_cercano(origen_x, origen_y):
     hacker_mas_cercano = None
@@ -159,8 +200,7 @@ def obtener_hacker_mas_cercano(origen_x, origen_y):
     origen_centro_y = origen_y + 50
 
     for h in hackers:
-        hacker_centro_x = h["x"] + 42
-        hacker_centro_y = h["y"] + 50
+        hacker_centro_x, hacker_centro_y = h.obtener_centro()
 
         dx = hacker_centro_x - origen_centro_x
         dy = hacker_centro_y - origen_centro_y
@@ -174,7 +214,7 @@ def obtener_hacker_mas_cercano(origen_x, origen_y):
 
 def dibujar_hackers():
     for h in hackers:
-        hacker(h["x"], h["y"])
+        h.dibujar()
 
 def dibujar_teclados():
     for t in teclados:
@@ -186,8 +226,7 @@ def disparar_teclado():
     if hacker_objetivo is not None:
         origen_x = personaje_x + 42 - teclado_ancho / 2
         origen_y = personaje_y + 50 - teclado_alto / 2
-        destino_x = hacker_objetivo["x"] + 42
-        destino_y = hacker_objetivo["y"] + 50
+        destino_x, destino_y = hacker_objetivo.obtener_centro()
 
         dx = destino_x - origen_x
         dy = destino_y - origen_y
@@ -222,13 +261,7 @@ def mover_teclados():
 def mover_hackers():
     # Movimiento de los Hackers hacia el personaje
     for h in hackers:
-        dx = personaje_x - h["x"]
-        dy = personaje_y - h["y"]
-        distancia = (dx ** 2 + dy ** 2) ** 0.5
-
-        if distancia > 0:
-            h["x"] += (dx / distancia) * velocidad_hacker
-            h["y"] += (dy / distancia) * velocidad_hacker
+        h.mover_hacia(personaje_x, personaje_y)
 
 def detectar_colisiones(): # Detecta colisiones entre hackers y teclados
     global hackers, teclados, puntaje
@@ -240,11 +273,11 @@ def detectar_colisiones(): # Detecta colisiones entre hackers y teclados
         teclado_choco = False
 
         for hacker_actual in hackers_sobrevivientes[:]:
-            dx = teclado_actual["x"] - hacker_actual["x"]
-            dy = teclado_actual["y"] - hacker_actual["y"]
+            dx = teclado_actual["x"] - hacker_actual.x
+            dy = teclado_actual["y"] - hacker_actual.y
             distancia = (dx ** 2 + dy ** 2) ** 0.5
 
-            if distancia < 44: # Si la distancia es menor que el radio del teclado
+            if distancia < 50: # Si la distancia es menor que el radio del teclado (80x35)
                 teclado_choco = True
                 puntaje += 1
                 sonido_golpe.play()
@@ -268,7 +301,7 @@ def detectar_colisiones_personaje(tiempo_actual):
     hacker_colisionado = None
 
     for hacker_actual in hackers:
-        hacker_rect = pygame.Rect(hacker_actual["x"], hacker_actual["y"], 84, 100)
+        hacker_rect = hacker_actual.obtener_rect()
 
         if personaje_rect.colliderect(hacker_rect): # Si el personaje colisiona con el hacker
             vidas -= 1
