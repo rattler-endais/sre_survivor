@@ -27,6 +27,6 @@ Disfruta y dime qué te parece.
 
 Házmelo saber haciendo un star en el repositorio.
 
-¿Te interesa colaborar con el desarrollo del juego? ¿quieres enterarte de la novedades o formar parte del exclusivo equipo de betasterters?
+¿Te interesa colaborar con el desarrollo del juego? ¿quieres enterarte de la novedades o formar parte del exclusivo equipo de beta-testers?
 
 Únete a la comunidad a través de nuestro canal de Telegram --> https://t.me/+8lrcRtXkAAA1MmE0 
