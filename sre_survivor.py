@@ -1,5 +1,16 @@
 import pygame
 import random
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+IMAGES_DIR = BASE_DIR / "assets" / "images"
+SOUNDS_DIR = BASE_DIR / "assets" / "sounds"
+
+def imagen(nombre_archivo):
+    return IMAGES_DIR / nombre_archivo
+
+def sonido(nombre_archivo):
+    return SOUNDS_DIR / nombre_archivo
 
 ANCHOPANTALLA = 800
 ALTOPANTALLA = 600
@@ -10,15 +21,15 @@ print("Desarrollado por Sr. Muñoz")
 pygame.init()
 
 # Sonidos
-pygame.mixer.music.load("MusicaFondo.mp3")
+pygame.mixer.music.load(sonido("MusicaFondo.mp3"))
 pygame.mixer.music.set_volume(0.25)
 pygame.mixer.music.play(-1)
 
-sonido_disparo = pygame.mixer.Sound("disparo.mp3")
-sonido_golpe = pygame.mixer.Sound("golpe.mp3")
-sonido_vida_perdida = pygame.mixer.Sound("vida_perdida.mp3")
-sonido_gameover = pygame.mixer.Sound("risamalvada.mp3")
-sonido_gameover_huevo_de_pascua = pygame.mixer.Sound("sonido_boss_iin.mp3")
+sonido_disparo = pygame.mixer.Sound(sonido("disparo.mp3"))
+sonido_golpe = pygame.mixer.Sound(sonido("golpe.mp3"))
+sonido_vida_perdida = pygame.mixer.Sound(sonido("vida_perdida.mp3"))
+sonido_gameover = pygame.mixer.Sound(sonido("risamalvada.mp3"))
+sonido_gameover_huevo_de_pascua = pygame.mixer.Sound(sonido("sonido_boss_iin.mp3"))
 
 sonido_disparo.set_volume(0.8)
 sonido_golpe.set_volume(0.8)
@@ -29,21 +40,21 @@ sonido_gameover_huevo_de_pascua.set_volume(0.8)
 # Crear la pantalla
 pantalla = pygame.display.set_mode((ANCHOPANTALLA, ALTOPANTALLA))
 pygame.display.set_caption("SRE Survivor")
-icono = pygame.image.load("iconosre.png")
+icono = pygame.image.load(imagen("iconosre.png"))
 pygame.display.set_icon(icono)
 
 # Fondo
-fondo = pygame.image.load("fondosre.png")
+fondo = pygame.image.load(imagen("fondosre.png"))
 fondo = pygame.transform.scale(fondo, (ANCHOPANTALLA, ALTOPANTALLA))
 
 # Fondo fin del juego
-fondofin = pygame.image.load("fondosrefin.png")
+fondofin = pygame.image.load(imagen("fondosrefin.png"))
 fondofin = pygame.transform.scale(fondofin, (ANCHOPANTALLA, ALTOPANTALLA))
 
 # Protagonista SRE
-personaje_img = pygame.image.load("sre.png")
+personaje_img = pygame.image.load(imagen("sre.png"))
 personaje_img = pygame.transform.scale(personaje_img, (84, 100))
-personaje_muerto_img = pygame.image.load("sre_muerto.png")
+personaje_muerto_img = pygame.image.load(imagen("sre_muerto.png"))
 personaje_muerto_img = pygame.transform.scale(personaje_muerto_img, (100, 50))
 personaje_x = 358
 personaje_y = 480
@@ -55,11 +66,11 @@ invulnerable_hasta = 0
 tiempo_invulnerabilidad = 1000
 
 # Corazones
-corazon_img = pygame.image.load("corazon.png")
+corazon_img = pygame.image.load(imagen("corazon.png"))
 corazon_img = pygame.transform.scale(corazon_img, (32, 32))
 
 # Hacker
-hacker_img = pygame.image.load("hacker.png")
+hacker_img = pygame.image.load(imagen("hacker.png"))
 hacker_img = pygame.transform.scale(hacker_img, (84, 100))
 hackers = []
 velocidad_hacker = 0.5
@@ -67,7 +78,7 @@ ultimo_hacker = 0
 tiempo_entre_hackers = 3000
 
 # Teclado
-teclado_img = pygame.image.load("teclado.png")
+teclado_img = pygame.image.load(imagen("teclado.png"))
 teclado_ancho = 80
 teclado_alto = int(teclado_img.get_height() * teclado_ancho / teclado_img.get_width())
 teclado_img = pygame.transform.scale(teclado_img, (teclado_ancho, teclado_alto))
@@ -77,7 +88,7 @@ ultimo_disparo_teclado = pygame.time.get_ticks()
 tiempo_entre_teclados = 2500
 
 # Boss
-boss_img = pygame.image.load("boss.png")
+boss_img = pygame.image.load(imagen("boss.png"))
 boss_img = pygame.transform.scale(boss_img, (138, 150))
 boss_x = ANCHOPANTALLA // 2 - boss_img.get_width() // 2
 boss_y = (ALTOPANTALLA - boss_img.get_height() - 50)
