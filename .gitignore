@@ -1,0 +1,14 @@
+# Ignorar directorios ocultos
+.*/
+
+# Entornos virtuales de Python
+.venv/
+venv/
+env/
+
+# Directorio del proyecto de PyCharm
+.idea/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
