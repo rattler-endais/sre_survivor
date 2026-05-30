@@ -6,12 +6,15 @@
 # Descargar el proyecto
 `git clone https://github.com/rattler-endais/sre_survivor.git`
 
+# No a las trampas ni a los spoilers
+Si sólo quieres probar el juego no hagas trampas, no mires dentro de la carpeta del proyecto, porque podria reducir tu experiencia de juego
+
 # Crea entorno virtual de python
 Este juego necesita las librerias de pygame para funcionar. Si no quieres que estas librerias interfieran con tu instalación de python puedes crear un entorno virtual de python en el que instalar estas librerías. Cuando te aburras del juego simplemente podrás eliminar el directprio del entorno virtual.
 
 Si no sabes crear un entorno virtual y activarlo, puedes revisar esta documentación --> https://fastapi.tiangolo.com/virtual-environments/#create-a-virtual-environment
 
-# Instala las dependencias
+# Instala las dependencias necesarias
 `pip install pygame`
 
 # Ejecuta el juego
