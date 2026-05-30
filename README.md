@@ -1,4 +1,5 @@
-# sre_survivor
+# SRE Survivor
+
 
 # Requisitos
 - Necesitas instalar python en tu ordenador. Se ha usado python 3.12 para su desarrollo. Puede que funcione con versiones superiores pero podrias encontrar problemas con la instalación de las librerías de pygame necesarias según tu sistema operativo
