@@ -4,9 +4,9 @@ from assets import imagen as ruta_imagen
 class Personajesre:
     imagen = pygame.transform.scale(pygame.image.load(ruta_imagen("sre.png")), (84, 100))
     imagen_muerto = pygame.transform.scale(pygame.image.load(ruta_imagen("sre_muerto.png")), (100, 50))
-    velocidad = 1
+    velocidad = 1.2
     velocidad_ralentizada = 0.4
-    vidas_iniciales = 3
+    vidas_iniciales = 5
     tiempo_invulnerabilidad = 1000
     tiempo_ralentizacion = 2000
     ancho = imagen.get_width()
