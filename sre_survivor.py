@@ -1,6 +1,7 @@
 import pygame
 import random
 from hacker import Hacker
+from teclado import Teclado
 from assets import imagen, sonido
 
 ANCHOPANTALLA = 800
@@ -66,12 +67,7 @@ ultimo_hacker = 0
 tiempo_entre_hackers = 3000
 
 # Teclado
-teclado_img = pygame.image.load(imagen("teclado.png"))
-teclado_ancho = 80
-teclado_alto = int(teclado_img.get_height() * teclado_ancho / teclado_img.get_width())
-teclado_img = pygame.transform.scale(teclado_img, (teclado_ancho, teclado_alto))
 teclados = []
-velocidad_teclado = 1.5
 ultimo_disparo_teclado = pygame.time.get_ticks()
 tiempo_entre_teclados = 2500
 
@@ -101,9 +97,6 @@ def personaje(x,y, tiempo_actual):
         return
 
     pantalla.blit(personaje_img, (x, y))
-
-def teclado(x, y):
-    pantalla.blit(teclado_img, (x, y))
 
 def boss(x, y):
     pantalla.blit(boss_img, (x, y))
@@ -162,14 +155,14 @@ def dibujar_hackers():
 
 def dibujar_teclados():
     for t in teclados:
-        teclado(t["x"], t["y"])
+        t.dibujar(pantalla)
 
 def disparar_teclado():
     hacker_objetivo = obtener_hacker_mas_cercano(personaje_x, personaje_y)
 
     if hacker_objetivo is not None:
-        origen_x = personaje_x + 42 - teclado_ancho / 2
-        origen_y = personaje_y + 50 - teclado_alto / 2
+        origen_x = personaje_x + 42 - Teclado.ancho / 2
+        origen_y = personaje_y + 50 - Teclado.alto / 2
         destino_x, destino_y = hacker_objetivo.obtener_centro()
 
         dx = destino_x - origen_x
@@ -177,12 +170,12 @@ def disparar_teclado():
         distancia = (dx ** 2 + dy ** 2) ** 0.5
 
         if distancia > 0:
-            teclados.append({
-                "x": origen_x,
-                "y": origen_y,
-                "velocidad_x": (dx / distancia) * velocidad_teclado,
-                "velocidad_y": (dy / distancia) * velocidad_teclado
-            })
+            teclados.append(Teclado(
+                origen_x,
+                origen_y,
+                (dx / distancia) * Teclado.velocidad,
+                (dy / distancia) * Teclado.velocidad
+            ))
             sonido_disparo.play()
 
 def mover_teclados():
@@ -191,15 +184,9 @@ def mover_teclados():
     copia_teclados = teclados[:]
 
     for t in copia_teclados:
-        t["x"] += t["velocidad_x"]
-        t["y"] += t["velocidad_y"]
+        t.mover()
 
-        if (
-            t["x"] < -teclado_ancho or
-            t["x"] > ANCHOPANTALLA or
-            t["y"] < -teclado_alto or
-            t["y"] > ALTOPANTALLA
-        ): # Eliminamos los teclados fuera de la pantalla
+        if t.esta_fuera_de_pantalla(ANCHOPANTALLA, ALTOPANTALLA):
             teclados.remove(t)
 
 def mover_hackers():
@@ -217,8 +204,8 @@ def detectar_colisiones(): # Detecta colisiones entre hackers y teclados
         teclado_choco = False
 
         for hacker_actual in hackers_sobrevivientes[:]:
-            dx = teclado_actual["x"] - hacker_actual.x
-            dy = teclado_actual["y"] - hacker_actual.y
+            dx = teclado_actual.x - hacker_actual.x
+            dy = teclado_actual.y - hacker_actual.y
             distancia = (dx ** 2 + dy ** 2) ** 0.5
 
             if distancia < 50: # Si la distancia es menor que el radio del teclado (80x35)
