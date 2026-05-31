@@ -5,8 +5,10 @@ class Personajesre:
     imagen = pygame.transform.scale(pygame.image.load(ruta_imagen("sre.png")), (84, 100))
     imagen_muerto = pygame.transform.scale(pygame.image.load(ruta_imagen("sre_muerto.png")), (100, 50))
     velocidad = 1
+    velocidad_ralentizada = 0.4
     vidas_iniciales = 3
     tiempo_invulnerabilidad = 1000
+    tiempo_ralentizacion = 2000
     ancho = imagen.get_width()
     alto = imagen.get_height()
 
@@ -17,12 +19,21 @@ class Personajesre:
         self.cambio_y = 0
         self.vidas = self.__class__.vidas_iniciales
         self.invulnerable_hasta = 0
+        self.ralentizado_hasta = 0
         self.imagen = self.__class__.imagen
         self.imagen_muerto = self.__class__.imagen_muerto
         self.velocidad = self.__class__.velocidad
+        self.velocidad_ralentizada = self.__class__.velocidad_ralentizada
         self.ancho = self.__class__.ancho
         self.alto = self.__class__.alto
         self.tiempo_invulnerabilidad = self.__class__.tiempo_invulnerabilidad
+        self.tiempo_ralentizacion = self.__class__.tiempo_ralentizacion
+
+    def obtener_velocidad_actual(self, tiempo_actual):
+        if self.esta_ralentizado(tiempo_actual):
+            return self.velocidad_ralentizada
+
+        return self.velocidad
 
     def dibujar(self, pantalla, tiempo_actual, estado_juego):
         if estado_juego == "terminado":
@@ -34,17 +45,17 @@ class Personajesre:
 
         pantalla.blit(self.imagen, (self.x, self.y))
 
-    def iniciar_movimiento_izquierda(self):
-        self.cambio_x = -self.velocidad
+    def iniciar_movimiento_izquierda(self, tiempo_actual):
+        self.cambio_x = -self.obtener_velocidad_actual(tiempo_actual)
 
-    def iniciar_movimiento_derecha(self):
-        self.cambio_x = self.velocidad
+    def iniciar_movimiento_derecha(self, tiempo_actual):
+        self.cambio_x = self.obtener_velocidad_actual(tiempo_actual)
 
-    def iniciar_movimiento_arriba(self):
-        self.cambio_y = -self.velocidad
+    def iniciar_movimiento_arriba(self, tiempo_actual):
+        self.cambio_y = -self.obtener_velocidad_actual(tiempo_actual)
 
-    def iniciar_movimiento_abajo(self):
-        self.cambio_y = self.velocidad
+    def iniciar_movimiento_abajo(self, tiempo_actual):
+        self.cambio_y = self.obtener_velocidad_actual(tiempo_actual)
 
     def detener_movimiento_horizontal(self):
         self.cambio_x = 0
@@ -52,7 +63,22 @@ class Personajesre:
     def detener_movimiento_vertical(self):
         self.cambio_y = 0
 
-    def mover(self, ancho_pantalla, alto_pantalla):
+    def actualizar_velocidad_movimiento(self, tiempo_actual):
+        velocidad_actual = self.obtener_velocidad_actual(tiempo_actual)
+
+        if self.cambio_x < 0:
+            self.cambio_x = -velocidad_actual
+        elif self.cambio_x > 0:
+            self.cambio_x = velocidad_actual
+
+        if self.cambio_y < 0:
+            self.cambio_y = -velocidad_actual
+        elif self.cambio_y > 0:
+            self.cambio_y = velocidad_actual
+
+    def mover(self, ancho_pantalla, alto_pantalla, tiempo_actual):
+        self.actualizar_velocidad_movimiento(tiempo_actual)
+
         self.x += self.cambio_x
         self.y += self.cambio_y
 
@@ -82,6 +108,12 @@ class Personajesre:
     def recibir_golpe(self, tiempo_actual):
         self.vidas -= 1
         self.invulnerable_hasta = tiempo_actual + self.tiempo_invulnerabilidad
+
+    def ralentizar(self, tiempo_actual):
+        self.ralentizado_hasta = tiempo_actual + self.tiempo_ralentizacion
+
+    def esta_ralentizado(self, tiempo_actual):
+        return tiempo_actual < self.ralentizado_hasta
 
     def esta_muerto(self):
         return self.vidas <= 0

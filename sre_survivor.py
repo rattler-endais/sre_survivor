@@ -1,6 +1,7 @@
 import pygame
 import random
 from hacker import Hacker
+from gestorcambios import GestorCambios
 from teclado import Teclado
 from personajesre import Personajesre
 from interfaz import Interfaz
@@ -51,10 +52,12 @@ personaje_sre = Personajesre(358, 480)
 # Interfaz
 interfaz = Interfaz(ANCHOPANTALLA, ALTOPANTALLA)
 
-# Hacker
-hackers = []
+# Enemigos
+enemigos = []
 ultimo_hacker = 0
 tiempo_entre_hackers = 3000
+ultimo_gestor_cambios = 0
+tiempo_entre_gestores_cambios = 7000
 
 # Teclado
 teclados = []
@@ -78,65 +81,72 @@ sonido_huevo_de_pascua_reproducido = False
 def boss(x, y):
     pantalla.blit(boss_img, (x, y))
 
-def crear_hacker():
+def obtener_posicion_en_borde(clase_enemigo):
     posiciones_por_borde = {
         "arriba": {
-            "x": random.randrange(0, ANCHOPANTALLA - Hacker.ancho),
-            "y": -Hacker.alto
+            "x": random.randrange(0, ANCHOPANTALLA - clase_enemigo.ancho),
+            "y": -clase_enemigo.alto
         },
         "abajo": {
-            "x": random.randrange(0, ANCHOPANTALLA - Hacker.ancho),
+            "x": random.randrange(0, ANCHOPANTALLA - clase_enemigo.ancho),
             "y": ALTOPANTALLA
         },
         "izquierda": {
-            "x": -Hacker.ancho,
-            "y": random.randrange(0, ALTOPANTALLA - Hacker.alto)
+            "x": -clase_enemigo.ancho,
+            "y": random.randrange(0, ALTOPANTALLA - clase_enemigo.alto)
         },
         "derecha": {
             "x": ANCHOPANTALLA,
-            "y": random.randrange(0, ALTOPANTALLA - Hacker.alto)
+            "y": random.randrange(0, ALTOPANTALLA - clase_enemigo.alto)
         }
     }
 
     borde = random.choice(list(posiciones_por_borde.keys()))
-    posicion = posiciones_por_borde[borde]
-    hackers.append(Hacker(posicion["x"], posicion["y"]))
+    return posiciones_por_borde[borde]
 
-def obtener_hacker_mas_cercano(origen_x, origen_y):
-    hacker_mas_cercano = None
+def crear_hacker():
+    posicion = obtener_posicion_en_borde(Hacker)
+    enemigos.append(Hacker(posicion["x"], posicion["y"]))
+
+def crear_gestor_cambios():
+    posicion = obtener_posicion_en_borde(GestorCambios)
+    enemigos.append(GestorCambios(posicion["x"], posicion["y"]))
+
+def obtener_enemigo_mas_cercano(origen_x, origen_y):
+    enemigo_mas_cercano = None
     distancia_mas_cercana = None
 
     origen_centro_x, origen_centro_y = personaje_sre.obtener_centro()
 
-    for h in hackers:
-        hacker_centro_x, hacker_centro_y = h.obtener_centro()
+    for enemigo_actual in enemigos:
+        enemigo_centro_x, enemigo_centro_y = enemigo_actual.obtener_centro()
 
-        dx = hacker_centro_x - origen_centro_x
-        dy = hacker_centro_y - origen_centro_y
+        dx = enemigo_centro_x - origen_centro_x
+        dy = enemigo_centro_y - origen_centro_y
         distancia = (dx ** 2 + dy ** 2) ** 0.5
 
         if distancia_mas_cercana is None or distancia < distancia_mas_cercana:
             distancia_mas_cercana = distancia
-            hacker_mas_cercano = h
+            enemigo_mas_cercano = enemigo_actual
 
-    return hacker_mas_cercano
+    return enemigo_mas_cercano
 
-def dibujar_hackers():
-    for h in hackers:
-        h.dibujar(pantalla)
+def dibujar_enemigos():
+    for enemigo_actual in enemigos:
+        enemigo_actual.dibujar(pantalla)
 
 def dibujar_teclados():
     for t in teclados:
         t.dibujar(pantalla)
 
 def disparar_teclado():
-    hacker_objetivo = obtener_hacker_mas_cercano(personaje_sre.x, personaje_sre.y)
+    enemigo_objetivo = obtener_enemigo_mas_cercano(personaje_sre.x, personaje_sre.y)
 
-    if hacker_objetivo is not None:
+    if enemigo_objetivo is not None:
         personaje_centro_x, personaje_centro_y = personaje_sre.obtener_centro()
         origen_x = personaje_centro_x - Teclado.ancho / 2
         origen_y = personaje_centro_y - Teclado.alto / 2
-        destino_x, destino_y = hacker_objetivo.obtener_centro()
+        destino_x, destino_y = enemigo_objetivo.obtener_centro()
 
         dx = destino_x - origen_x
         dy = destino_y - origen_y
@@ -162,63 +172,69 @@ def mover_teclados():
         if t.esta_fuera_de_pantalla(ANCHOPANTALLA, ALTOPANTALLA):
             teclados.remove(t)
 
-def mover_hackers():
-    # Movimiento de los Hackers hacia el personaje
-    for h in hackers:
-        h.mover_hacia(personaje_sre.x, personaje_sre.y)
+def mover_enemigos():
+    # Movimiento de los enemigos hacia el personaje
+    for enemigo_actual in enemigos:
+        enemigo_actual.mover_hacia(personaje_sre.x, personaje_sre.y)
 
-def detectar_colisiones(): # Detecta colisiones entre hackers y teclados
-    global hackers, teclados, puntaje
+def detectar_colisiones(): # Detecta colisiones entre enemigos y teclados
+    global enemigos, teclados, puntaje
 
     teclados_sobrevivientes = []
-    hackers_sobrevivientes = list(hackers) # Crear una copia de la lista original
+    enemigos_sobrevivientes = list(enemigos) # Crear una copia de la lista original
 
     for teclado_actual in teclados:
         teclado_choco = False
+        teclado_rect = teclado_actual.obtener_rect()
 
-        for hacker_actual in hackers_sobrevivientes[:]:
-            dx = teclado_actual.x - hacker_actual.x
-            dy = teclado_actual.y - hacker_actual.y
-            distancia = (dx ** 2 + dy ** 2) ** 0.5
+        for enemigo_actual in enemigos_sobrevivientes[:]:
+            enemigo_rect = enemigo_actual.obtener_rect()
 
-            if distancia < 50: # Si la distancia es menor que el radio del teclado (80x35)
+            if teclado_rect.colliderect(enemigo_rect): # Si el teclado colisiona con el enemigo
                 teclado_choco = True
                 puntaje += 1
                 sonido_golpe.play()
-                hackers_sobrevivientes.remove(hacker_actual)
-                break # Salir del bucle interno para evitar colisiones con otros hackers
+                enemigos_sobrevivientes.remove(enemigo_actual)
+                break # Salir del bucle interno para evitar colisiones con otros enemigos
+
         if not teclado_choco:
             # Si no choco, agregarlo a la lista de teclados sobrevivientes
             # para que se siga moviendo
             teclados_sobrevivientes.append(teclado_actual)
 
-    hackers = hackers_sobrevivientes
+    enemigos = enemigos_sobrevivientes
     teclados = teclados_sobrevivientes
 
 def detectar_colisiones_personaje(tiempo_actual):
-    global hackers
-
-    if personaje_sre.es_invulnerable(tiempo_actual):
-        return
+    global enemigos
 
     personaje_rect = personaje_sre.obtener_rect()
-    hacker_colisionado = None
+    enemigo_colisionado = None
 
-    for hacker_actual in hackers:
-        hacker_rect = hacker_actual.obtener_rect()
+    for enemigo_actual in enemigos:
+        enemigo_rect = enemigo_actual.obtener_rect()
 
-        if personaje_rect.colliderect(hacker_rect): # Si el personaje colisiona con el hacker
-            personaje_sre.recibir_golpe(tiempo_actual)
-            sonido_vida_perdida.play()
-            hacker_colisionado = hacker_actual
+        if personaje_rect.colliderect(enemigo_rect): # Si el personaje colisiona con el enemigo
+            if isinstance(enemigo_actual, Hacker):
+                if personaje_sre.es_invulnerable(tiempo_actual):
+                    return
+
+                personaje_sre.recibir_golpe(tiempo_actual)
+                sonido_vida_perdida.play()
+
+            elif isinstance(enemigo_actual, GestorCambios):
+                personaje_sre.ralentizar(tiempo_actual)
+                sonido_golpe.play()
+
+            enemigo_colisionado = enemigo_actual
             break
 
-    # Se reconstruye la lista de hackers sin el hacker colisionado
-    if hacker_colisionado is not None:
-        hackers = [
-            hacker_actual
-            for hacker_actual in hackers
-            if hacker_actual is not hacker_colisionado
+    # Se reconstruye la lista de enemigos sin el enemigo colisionado
+    if enemigo_colisionado is not None:
+        enemigos = [
+            enemigo_actual
+            for enemigo_actual in enemigos
+            if enemigo_actual is not enemigo_colisionado
         ]
 
 def terminar_juego(tiempo_actual):
@@ -230,15 +246,20 @@ def terminar_juego(tiempo_actual):
     pygame.mixer.music.stop()
 
 def actualizar_juego(tiempo_actual):
-    global ultimo_hacker, ultimo_disparo_teclado
+    global ultimo_hacker, ultimo_gestor_cambios, ultimo_disparo_teclado
 
-    # Movimiento de los hackers
-    mover_hackers()
+    # Movimiento de los enemigos
+    mover_enemigos()
 
     # Aparición automática de hackers cada 3 segundos
     if tiempo_actual - ultimo_hacker >= tiempo_entre_hackers:
         crear_hacker()
         ultimo_hacker = tiempo_actual
+
+    # Aparición automática de gestores de cambios con menor frecuencia
+    if tiempo_actual - ultimo_gestor_cambios >= tiempo_entre_gestores_cambios:
+        crear_gestor_cambios()
+        ultimo_gestor_cambios = tiempo_actual
 
     # Disparo automático de teclados cada segundo
     if tiempo_actual - ultimo_disparo_teclado >= tiempo_entre_teclados:
@@ -257,7 +278,7 @@ def dibujar_pantalla_juego(tiempo_actual):
     #pantalla.fill((230, 220, 240))
     pantalla.blit(fondo, (0, 0))
     personaje_sre.dibujar(pantalla, tiempo_actual, estado_juego)
-    dibujar_hackers()
+    dibujar_enemigos()
     dibujar_teclados()
     interfaz.dibujar_vidas(pantalla, personaje_sre.vidas)
     interfaz.dibujar_puntaje(pantalla, puntaje)
@@ -331,13 +352,13 @@ while se_ejecuta:
             se_ejecuta = False
         if estado_juego == "jugando" and evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_LEFT:
-                personaje_sre.iniciar_movimiento_izquierda()
+                personaje_sre.iniciar_movimiento_izquierda(tiempo_actual)
             if evento.key == pygame.K_RIGHT:
-                personaje_sre.iniciar_movimiento_derecha()
+                personaje_sre.iniciar_movimiento_derecha(tiempo_actual)
             if evento.key == pygame.K_UP:
-                personaje_sre.iniciar_movimiento_arriba()
+                personaje_sre.iniciar_movimiento_arriba(tiempo_actual)
             if evento.key == pygame.K_DOWN:
-                personaje_sre.iniciar_movimiento_abajo()
+                personaje_sre.iniciar_movimiento_abajo(tiempo_actual)
         if estado_juego == "jugando" and evento.type == pygame.KEYUP:
             if evento.key in (pygame.K_LEFT, pygame.K_RIGHT):
                 personaje_sre.detener_movimiento_horizontal()
@@ -345,7 +366,7 @@ while se_ejecuta:
                 personaje_sre.detener_movimiento_vertical()
 
     if estado_juego == "jugando":
-        personaje_sre.mover(ANCHOPANTALLA, ALTOPANTALLA)
+        personaje_sre.mover(ANCHOPANTALLA, ALTOPANTALLA, tiempo_actual)
         actualizar_juego(tiempo_actual)
         dibujar_pantalla_juego(tiempo_actual)
     else: # GAME OVER
