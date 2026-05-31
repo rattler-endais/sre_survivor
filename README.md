@@ -24,6 +24,10 @@ Si no sabes crear un entorno virtual y activarlo, puedes revisar esta documentac
 
 Disfruta y dime qué te parece.
 
+# Minipista para novatos
+
+Las feclas son tus amigas
+
 # Ir más allá
 ¿Has llegado hasta aqui y has probado el juego? 
 
