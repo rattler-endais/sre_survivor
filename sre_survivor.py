@@ -3,6 +3,7 @@ import random
 from hacker import Hacker
 from teclado import Teclado
 from personajesre import Personajesre
+from interfaz import Interfaz
 from assets import imagen, sonido
 
 ANCHOPANTALLA = 800
@@ -47,9 +48,8 @@ fondofin = pygame.transform.scale(fondofin, (ANCHOPANTALLA, ALTOPANTALLA))
 # Protagonista SRE
 personaje_sre = Personajesre(358, 480)
 
-# Corazones
-corazon_img = pygame.image.load(imagen("corazon.png"))
-corazon_img = pygame.transform.scale(corazon_img, (32, 32))
+# Interfaz
+interfaz = Interfaz(ANCHOPANTALLA, ALTOPANTALLA)
 
 # Hacker
 hackers = []
@@ -69,9 +69,6 @@ boss_y = (ALTOPANTALLA - boss_img.get_height() - 50)
 
 # Puntaje y tiempo
 puntaje = 0
-fuente = pygame.font.Font(None, 36) # Usar la fuente predeterminada del sistema
-fuente_game_over = pygame.font.Font(None, 96)
-fuente_fin = pygame.font.Font(None, 44)
 tiempo_inicio = pygame.time.get_ticks()
 tiempo_fin = None
 estado_juego = "jugando"
@@ -80,10 +77,6 @@ sonido_huevo_de_pascua_reproducido = False
 
 def boss(x, y):
     pantalla.blit(boss_img, (x, y))
-
-def dibujar_vidas():
-    for i in range(personaje_sre.vidas):
-        pantalla.blit(corazon_img, (10 + i * 38, 10))
 
 def crear_hacker():
     posiciones_por_borde = {
@@ -228,31 +221,6 @@ def detectar_colisiones_personaje(tiempo_actual):
             if hacker_actual is not hacker_colisionado
         ]
 
-def dibujar_puntaje():
-    texto = fuente.render(f"Puntos: {puntaje}", False, (255, 204, 29))
-    pantalla.blit(texto, (650, 10))
-
-def formatear_tiempo(milisegundos):
-    segundos_totales = milisegundos // 1000
-    minutos = segundos_totales // 60
-    segundos = segundos_totales % 60
-    return f"{minutos}:{segundos:02d}"
-
-def obtener_tiempo_sobrevivido(tiempo_actual):
-    if tiempo_fin is not None:
-        return tiempo_fin - tiempo_inicio
-
-    return tiempo_actual - tiempo_inicio
-
-def dibujar_cronometro(tiempo_actual):
-    tiempo_sobrevivido = obtener_tiempo_sobrevivido(tiempo_actual)
-    texto = fuente.render(f"Tiempo: {formatear_tiempo(tiempo_sobrevivido)}", False, (255, 204, 29))
-    rect = texto.get_rect(center=(ANCHOPANTALLA // 2, 25))
-    sombra_texto = fuente.render(f"Tiempo: {formatear_tiempo(tiempo_sobrevivido)}", False, (43, 56, 61))
-    sombra_rect = texto.get_rect(center=(ANCHOPANTALLA // 2 + 2, 25 + 2))
-    pantalla.blit(sombra_texto, sombra_rect)
-    pantalla.blit(texto, rect)
-
 def terminar_juego(tiempo_actual):
     global estado_juego, tiempo_fin
     
@@ -291,9 +259,9 @@ def dibujar_pantalla_juego(tiempo_actual):
     personaje_sre.dibujar(pantalla, tiempo_actual, estado_juego)
     dibujar_hackers()
     dibujar_teclados()
-    dibujar_vidas()
-    dibujar_puntaje()
-    dibujar_cronometro(tiempo_actual)
+    interfaz.dibujar_vidas(pantalla, personaje_sre.vidas)
+    interfaz.dibujar_puntaje(pantalla, puntaje)
+    interfaz.dibujar_cronometro(pantalla, tiempo_actual, tiempo_inicio, tiempo_fin)
 
 def obtener_posicion_boss_fin():
     separacion = 15
@@ -318,34 +286,10 @@ def obtener_posicion_boss_fin():
 def dibujar_pantalla_fin():
     pantalla.blit(fondofin, (0, 0))
     personaje_sre.dibujar(pantalla, tiempo_fin, estado_juego)
-    #dibujar_hackers()
-    #dibujar_teclados()
-    #dibujar_puntaje()
-    #dibujar_cronometro(tiempo_fin)
     boss_fin_x, boss_fin_y = obtener_posicion_boss_fin()
     boss(boss_fin_x, boss_fin_y)
 
-    texto_game_over = fuente_game_over.render("GAME OVER", False, (255, 0, 0))
-    rect_game_over = texto_game_over.get_rect(center=(ANCHOPANTALLA // 2, ALTOPANTALLA // 2 - 80))
-    sombra_texto_game_over = fuente_game_over.render("GAME OVER", False, (255, 255, 255))
-    sombra_rect_game_over = texto_game_over.get_rect(center=(ANCHOPANTALLA // 2 + 3, ALTOPANTALLA // 2 - 80 + 3))
-    pantalla.blit(sombra_texto_game_over, sombra_rect_game_over)
-    pantalla.blit(texto_game_over, rect_game_over)
-
-    texto_puntaje = fuente_fin.render(f"Puntaje final: {puntaje}", False, (239, 251, 127))
-    rect_puntaje = texto_puntaje.get_rect(center=(ANCHOPANTALLA // 2, ALTOPANTALLA // 2))
-    sombra_texto_puntaje = fuente_fin.render(f"Puntaje final: {puntaje}", False, (84, 136, 45))
-    sombra_rect_puntaje = texto_puntaje.get_rect(center=(ANCHOPANTALLA // 2 + 2, ALTOPANTALLA // 2 + 2))
-    pantalla.blit(sombra_texto_puntaje, sombra_rect_puntaje)
-    pantalla.blit(texto_puntaje, rect_puntaje)
-
-    tiempo_sobrevivido = tiempo_fin - tiempo_inicio
-    texto_tiempo = fuente_fin.render(f"Tiempo sobrevivido: {formatear_tiempo(tiempo_sobrevivido)}", False, (239, 251, 127))
-    rect_tiempo = texto_tiempo.get_rect(center=(ANCHOPANTALLA // 2, ALTOPANTALLA // 2 + 50))
-    sombra_texto_tiempo = fuente_fin.render(f"Tiempo sobrevivido: {formatear_tiempo(tiempo_sobrevivido)}", False, (84, 136, 45))
-    sombra_rect_tiempo = texto_tiempo.get_rect(center=(ANCHOPANTALLA // 2 + 2, ALTOPANTALLA // 2 + 50 + 2))
-    pantalla.blit(sombra_texto_tiempo, sombra_rect_tiempo)
-    pantalla.blit(texto_tiempo, rect_tiempo)
+    interfaz.dibujar_game_over(pantalla, puntaje, tiempo_inicio, tiempo_fin)
 
 def cursor_en_area_huevo_de_pascua():
     mouse_x, mouse_y = pygame.mouse.get_pos()
