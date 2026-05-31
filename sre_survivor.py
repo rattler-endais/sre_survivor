@@ -57,7 +57,7 @@ enemigos = []
 ultimo_hacker = 0
 tiempo_entre_hackers = 3000
 ultimo_gestor_cambios = 0
-tiempo_entre_gestores_cambios = 7000
+tiempo_entre_gestores_cambios = 9000
 
 # Teclado
 teclados = []
@@ -172,10 +172,10 @@ def mover_teclados():
         if t.esta_fuera_de_pantalla(ANCHOPANTALLA, ALTOPANTALLA):
             teclados.remove(t)
 
-def mover_enemigos():
+def mover_enemigos(tiempo_actual):
     # Movimiento de los enemigos hacia el personaje
     for enemigo_actual in enemigos:
-        enemigo_actual.mover_hacia(personaje_sre.x, personaje_sre.y)
+        enemigo_actual.mover_hacia(personaje_sre.x, personaje_sre.y, tiempo_actual)
 
 def detectar_colisiones(): # Detecta colisiones entre enemigos y teclados
     global enemigos, teclados, puntaje
@@ -192,9 +192,13 @@ def detectar_colisiones(): # Detecta colisiones entre enemigos y teclados
 
             if teclado_rect.colliderect(enemigo_rect): # Si el teclado colisiona con el enemigo
                 teclado_choco = True
-                puntaje += 1
+                enemigo_actual.recibir_golpe(teclado_actual.daño)
                 sonido_golpe.play()
-                enemigos_sobrevivientes.remove(enemigo_actual)
+
+                if enemigo_actual.esta_derrotado():
+                    puntaje += 1
+                    enemigos_sobrevivientes.remove(enemigo_actual)
+
                 break # Salir del bucle interno para evitar colisiones con otros enemigos
 
         if not teclado_choco:
@@ -223,10 +227,16 @@ def detectar_colisiones_personaje(tiempo_actual):
                 sonido_vida_perdida.play()
 
             elif isinstance(enemigo_actual, GestorCambios):
-                personaje_sre.ralentizar(tiempo_actual)
-                sonido_golpe.play()
+                if enemigo_actual.puede_aplicar_efecto(tiempo_actual):
+                    personaje_sre.ralentizar(tiempo_actual)
+                    enemigo_actual.registrar_efecto(tiempo_actual)
+                    enemigo_actual.empujar_desde(personaje_sre.x, personaje_sre.y)
+                    enemigo_actual.aturdir(tiempo_actual)
+                    sonido_golpe.play()
 
-            enemigo_colisionado = enemigo_actual
+            if enemigo_actual.desaparece_al_colisionar_con_personaje:
+                enemigo_colisionado = enemigo_actual
+
             break
 
     # Se reconstruye la lista de enemigos sin el enemigo colisionado
@@ -249,7 +259,7 @@ def actualizar_juego(tiempo_actual):
     global ultimo_hacker, ultimo_gestor_cambios, ultimo_disparo_teclado
 
     # Movimiento de los enemigos
-    mover_enemigos()
+    mover_enemigos(tiempo_actual)
 
     # Aparición automática de hackers cada 3 segundos
     if tiempo_actual - ultimo_hacker >= tiempo_entre_hackers:
