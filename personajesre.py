@@ -19,6 +19,12 @@ class Personajesre:
             "arriba": cargar_imagen_personaje("sre_up.png", alto),
             "izquierda": cargar_imagen_personaje("sre_left.png", alto),
             "derecha": cargar_imagen_personaje("sre_right.png", alto),
+        },
+        "ralentizado": {
+            "abajo": cargar_imagen_personaje("sre_slow.png", alto),
+            "arriba": cargar_imagen_personaje("sre_slow_up.png", alto),
+            "izquierda": cargar_imagen_personaje("sre_slow_left.png", alto),
+            "derecha": cargar_imagen_personaje("sre_slow_right.png", alto),
         }
     }
     imagen_muerto = cargar_imagen_personaje("sre_muerto.png", alto_muerto)
@@ -53,7 +59,7 @@ class Personajesre:
 
     def obtener_estado_imagen(self, tiempo_actual):
         if self.esta_ralentizado(tiempo_actual):
-            return "normal"
+            return "ralentizado"
 
         return "normal"
 

@@ -57,12 +57,12 @@ enemigos = []
 ultimo_hacker = 0
 tiempo_entre_hackers = 3000
 ultimo_gestor_cambios = 0
-tiempo_entre_gestores_cambios = 9000
+tiempo_entre_gestores_cambios = 10000
 
 # Teclado
 teclados = []
 ultimo_disparo_teclado = pygame.time.get_ticks()
-tiempo_entre_teclados = 2500
+tiempo_entre_teclados = 2200
 
 # Boss
 boss_img = pygame.image.load(imagen("boss.png"))

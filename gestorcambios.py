@@ -8,7 +8,7 @@ class GestorCambios(Enemigo):
     vida_maxima = 2
     desaparece_al_colisionar_con_personaje = False
     tiempo_entre_efectos = 2500
-    empuje_al_colisionar = 110
+    empuje_al_colisionar = 150
     tiempo_aturdimiento = 1200
 
     def __init__(self, x, y):
