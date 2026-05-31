@@ -2,6 +2,7 @@ import pygame
 import random
 from hacker import Hacker
 from teclado import Teclado
+from personajesre import Personajesre
 from assets import imagen, sonido
 
 ANCHOPANTALLA = 800
@@ -44,18 +45,7 @@ fondofin = pygame.image.load(imagen("fondosrefin.png"))
 fondofin = pygame.transform.scale(fondofin, (ANCHOPANTALLA, ALTOPANTALLA))
 
 # Protagonista SRE
-personaje_img = pygame.image.load(imagen("sre.png"))
-personaje_img = pygame.transform.scale(personaje_img, (84, 100))
-personaje_muerto_img = pygame.image.load(imagen("sre_muerto.png"))
-personaje_muerto_img = pygame.transform.scale(personaje_muerto_img, (100, 50))
-personaje_x = 358
-personaje_y = 480
-personaje_cambio_x = 0
-personaje_cambio_y = 0
-velocidad_personaje = 1
-vidas = 3
-invulnerable_hasta = 0
-tiempo_invulnerabilidad = 1000
+personaje_sre = Personajesre(358, 480)
 
 # Corazones
 corazon_img = pygame.image.load(imagen("corazon.png"))
@@ -88,21 +78,11 @@ estado_juego = "jugando"
 sonido_gameover_reproducido = False
 sonido_huevo_de_pascua_reproducido = False
 
-def personaje(x,y, tiempo_actual):
-    if estado_juego == "terminado":
-        pantalla.blit(personaje_muerto_img, (x, y))
-        return
-
-    if tiempo_actual < invulnerable_hasta and (tiempo_actual // 100) % 2 == 0:
-        return
-
-    pantalla.blit(personaje_img, (x, y))
-
 def boss(x, y):
     pantalla.blit(boss_img, (x, y))
 
 def dibujar_vidas():
-    for i in range(vidas):
+    for i in range(personaje_sre.vidas):
         pantalla.blit(corazon_img, (10 + i * 38, 10))
 
 def crear_hacker():
@@ -133,8 +113,7 @@ def obtener_hacker_mas_cercano(origen_x, origen_y):
     hacker_mas_cercano = None
     distancia_mas_cercana = None
 
-    origen_centro_x = origen_x + 42
-    origen_centro_y = origen_y + 50
+    origen_centro_x, origen_centro_y = personaje_sre.obtener_centro()
 
     for h in hackers:
         hacker_centro_x, hacker_centro_y = h.obtener_centro()
@@ -158,11 +137,12 @@ def dibujar_teclados():
         t.dibujar(pantalla)
 
 def disparar_teclado():
-    hacker_objetivo = obtener_hacker_mas_cercano(personaje_x, personaje_y)
+    hacker_objetivo = obtener_hacker_mas_cercano(personaje_sre.x, personaje_sre.y)
 
     if hacker_objetivo is not None:
-        origen_x = personaje_x + 42 - Teclado.ancho / 2
-        origen_y = personaje_y + 50 - Teclado.alto / 2
+        personaje_centro_x, personaje_centro_y = personaje_sre.obtener_centro()
+        origen_x = personaje_centro_x - Teclado.ancho / 2
+        origen_y = personaje_centro_y - Teclado.alto / 2
         destino_x, destino_y = hacker_objetivo.obtener_centro()
 
         dx = destino_x - origen_x
@@ -192,7 +172,7 @@ def mover_teclados():
 def mover_hackers():
     # Movimiento de los Hackers hacia el personaje
     for h in hackers:
-        h.mover_hacia(personaje_x, personaje_y)
+        h.mover_hacia(personaje_sre.x, personaje_sre.y)
 
 def detectar_colisiones(): # Detecta colisiones entre hackers y teclados
     global hackers, teclados, puntaje
@@ -223,21 +203,20 @@ def detectar_colisiones(): # Detecta colisiones entre hackers y teclados
     teclados = teclados_sobrevivientes
 
 def detectar_colisiones_personaje(tiempo_actual):
-    global vidas, invulnerable_hasta, hackers
+    global hackers
 
-    if tiempo_actual < invulnerable_hasta:
+    if personaje_sre.es_invulnerable(tiempo_actual):
         return
 
-    personaje_rect = pygame.Rect(personaje_x, personaje_y, 84, 100)
+    personaje_rect = personaje_sre.obtener_rect()
     hacker_colisionado = None
 
     for hacker_actual in hackers:
         hacker_rect = hacker_actual.obtener_rect()
 
         if personaje_rect.colliderect(hacker_rect): # Si el personaje colisiona con el hacker
-            vidas -= 1
+            personaje_sre.recibir_golpe(tiempo_actual)
             sonido_vida_perdida.play()
-            invulnerable_hasta = tiempo_actual + tiempo_invulnerabilidad
             hacker_colisionado = hacker_actual
             break
 
@@ -275,12 +254,11 @@ def dibujar_cronometro(tiempo_actual):
     pantalla.blit(texto, rect)
 
 def terminar_juego(tiempo_actual):
-    global estado_juego, tiempo_fin, personaje_cambio_x, personaje_cambio_y
-
+    global estado_juego, tiempo_fin
+    
     estado_juego = "terminado"
     tiempo_fin = tiempo_actual
-    personaje_cambio_x = 0
-    personaje_cambio_y = 0
+    personaje_sre.detener()
     pygame.mixer.music.stop()
 
 def actualizar_juego(tiempo_actual):
@@ -303,14 +281,14 @@ def actualizar_juego(tiempo_actual):
     detectar_colisiones()
     detectar_colisiones_personaje(tiempo_actual)
 
-    if vidas <= 0:
+    if personaje_sre.esta_muerto():
         terminar_juego(tiempo_actual)
 
 def dibujar_pantalla_juego(tiempo_actual):
     # Dibujar elementos en la pantalla
     #pantalla.fill((230, 220, 240))
     pantalla.blit(fondo, (0, 0))
-    personaje(personaje_x, personaje_y, tiempo_actual)
+    personaje_sre.dibujar(pantalla, tiempo_actual, estado_juego)
     dibujar_hackers()
     dibujar_teclados()
     dibujar_vidas()
@@ -320,17 +298,17 @@ def dibujar_pantalla_juego(tiempo_actual):
 def obtener_posicion_boss_fin():
     separacion = 15
 
-    personaje_muerto_ancho = personaje_muerto_img.get_width()
-    personaje_muerto_alto = personaje_muerto_img.get_height()
+    personaje_muerto_ancho = personaje_sre.obtener_ancho_muerto()
+    personaje_muerto_alto = personaje_sre.obtener_alto_muerto()
     boss_ancho = boss_img.get_width()
     boss_alto = boss_img.get_height()
 
-    boss_x_calculado = personaje_x + personaje_muerto_ancho + separacion
+    boss_x_calculado = personaje_sre.x + personaje_muerto_ancho + separacion
 
     if boss_x_calculado + boss_ancho > ANCHOPANTALLA:
-        boss_x_calculado = personaje_x - boss_ancho - separacion
+        boss_x_calculado = personaje_sre.x - boss_ancho - separacion
 
-    boss_y_calculado = personaje_y + personaje_muerto_alto // 2 - boss_alto // 2
+    boss_y_calculado = personaje_sre.y + personaje_muerto_alto // 2 - boss_alto // 2
 
     boss_x_calculado = max(0, min(boss_x_calculado, ANCHOPANTALLA - boss_ancho))
     boss_y_calculado = max(0, min(boss_y_calculado, ALTOPANTALLA - boss_alto))
@@ -339,7 +317,7 @@ def obtener_posicion_boss_fin():
 
 def dibujar_pantalla_fin():
     pantalla.blit(fondofin, (0, 0))
-    personaje(personaje_x, personaje_y, tiempo_fin)
+    personaje_sre.dibujar(pantalla, tiempo_fin, estado_juego)
     #dibujar_hackers()
     #dibujar_teclados()
     #dibujar_puntaje()
@@ -409,33 +387,21 @@ while se_ejecuta:
             se_ejecuta = False
         if estado_juego == "jugando" and evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_LEFT:
-                personaje_cambio_x = -velocidad_personaje
+                personaje_sre.iniciar_movimiento_izquierda()
             if evento.key == pygame.K_RIGHT:
-                personaje_cambio_x = velocidad_personaje
+                personaje_sre.iniciar_movimiento_derecha()
             if evento.key == pygame.K_UP:
-                personaje_cambio_y = -velocidad_personaje
+                personaje_sre.iniciar_movimiento_arriba()
             if evento.key == pygame.K_DOWN:
-                personaje_cambio_y = velocidad_personaje
+                personaje_sre.iniciar_movimiento_abajo()
         if estado_juego == "jugando" and evento.type == pygame.KEYUP:
             if evento.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                personaje_cambio_x = 0
+                personaje_sre.detener_movimiento_horizontal()
             if evento.key in (pygame.K_UP, pygame.K_DOWN):
-                personaje_cambio_y = 0
+                personaje_sre.detener_movimiento_vertical()
 
     if estado_juego == "jugando":
-        # Movimiento del personaje
-        personaje_x += personaje_cambio_x
-        personaje_y += personaje_cambio_y
-
-        if personaje_x < 0:
-            personaje_x = 0
-        elif personaje_x > ANCHOPANTALLA - 84:
-            personaje_x = ANCHOPANTALLA - 84
-        if personaje_y < 0:
-            personaje_y = 0
-        elif personaje_y > ALTOPANTALLA - 100:
-            personaje_y = ALTOPANTALLA - 100
-
+        personaje_sre.mover(ANCHOPANTALLA, ALTOPANTALLA)
         actualizar_juego(tiempo_actual)
         dibujar_pantalla_juego(tiempo_actual)
     else: # GAME OVER
