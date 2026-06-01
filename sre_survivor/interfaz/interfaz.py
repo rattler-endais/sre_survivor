@@ -1,5 +1,5 @@
 import pygame
-from assets import imagen
+from sre_survivor.assets import imagen
 
 class Interfaz:
     def __init__(self, ancho_pantalla, alto_pantalla):

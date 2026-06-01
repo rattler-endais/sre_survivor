@@ -1,6 +1,6 @@
 import pygame
-from enemigo import Enemigo
-from assets import imagen
+from sre_survivor.enemigos.enemigo import Enemigo
+from sre_survivor.assets import imagen
 
 class Hacker(Enemigo):
     imagen = pygame.transform.scale(pygame.image.load(imagen("hacker.png")), (84, 100))

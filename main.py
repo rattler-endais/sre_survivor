@@ -1,1 +1,1 @@
-import sre_survivor
+import sre_survivor.sre_survivor

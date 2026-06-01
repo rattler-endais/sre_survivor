@@ -1,5 +1,5 @@
 import pygame
-from assets import imagen as ruta_imagen
+from sre_survivor.assets import imagen as ruta_imagen
 
 def cargar_imagen_personaje(nombre_archivo, alto_objetivo):
     imagen_original = pygame.image.load(ruta_imagen(nombre_archivo))

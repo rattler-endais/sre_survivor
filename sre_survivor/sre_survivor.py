@@ -1,11 +1,11 @@
 import pygame
 import random
-from hacker import Hacker
-from gestorcambios import GestorCambios
-from teclado import Teclado
-from personajesre import Personajesre
-from interfaz import Interfaz
-from assets import imagen, sonido
+from sre_survivor.enemigos.hacker import Hacker
+from sre_survivor.enemigos.gestor_cambios import GestorCambios
+from sre_survivor.armas.teclado import Teclado
+from sre_survivor.personajes.personaje_sre import Personajesre
+from sre_survivor.interfaz.interfaz import Interfaz
+from sre_survivor.assets import imagen, sonido
 
 ANCHOPANTALLA = 800
 ALTOPANTALLA = 600
@@ -57,7 +57,7 @@ enemigos = []
 ultimo_hacker = 0
 tiempo_entre_hackers = 3000
 ultimo_gestor_cambios = 0
-tiempo_entre_gestores_cambios = 10000
+tiempo_entre_gestores_cambios = 11000
 
 # Teclado
 teclados = []

@@ -1,5 +1,5 @@
 import pygame
-from assets import imagen
+from sre_survivor.assets import imagen
 
 class Teclado:
     imagen_original = pygame.image.load(imagen("teclado.png"))

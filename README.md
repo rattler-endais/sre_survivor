@@ -20,7 +20,7 @@ Si no sabes crear un entorno virtual y activarlo, puedes revisar esta documentac
 `pip install pygame`
 
 # Ejecuta el juego
-`python sre_survivor.py`
+`python main.py`
 
 Disfruta y dime qué te parece.
 

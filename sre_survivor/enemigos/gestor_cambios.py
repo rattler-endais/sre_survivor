@@ -1,6 +1,6 @@
 import pygame
-from enemigo import Enemigo
-from assets import imagen
+from sre_survivor.enemigos.enemigo import Enemigo
+from sre_survivor.assets import imagen
 
 class GestorCambios(Enemigo):
     imagen = pygame.transform.scale(pygame.image.load(imagen("gestorcambios.png")), (124, 112))
