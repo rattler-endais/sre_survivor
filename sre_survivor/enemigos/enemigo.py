@@ -6,6 +6,7 @@ class Enemigo:
     ancho = 0
     alto = 0
     vida_maxima = 1
+    puntos = 1
     desaparece_al_colisionar_con_personaje = True
 
     def __init_subclass__(cls):
@@ -24,9 +25,10 @@ class Enemigo:
         self.alto = self.__class__.alto
         self.vida_maxima = self.__class__.vida_maxima
         self.vida = self.vida_maxima
+        self.puntos = self.__class__.puntos
         self.desaparece_al_colisionar_con_personaje = self.__class__.desaparece_al_colisionar_con_personaje
 
-    def dibujar(self, pantalla):
+    def dibujar(self, pantalla, tiempo_actual=None):
         pantalla.blit(self.imagen, (self.x, self.y))
 
     def mover_hacia(self, objetivo_x, objetivo_y, tiempo_actual=None):

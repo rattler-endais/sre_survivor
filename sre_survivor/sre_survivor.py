@@ -2,6 +2,7 @@ import pygame
 import random
 from sre_survivor.enemigos.hacker import Hacker
 from sre_survivor.enemigos.gestor_cambios import GestorCambios
+from sre_survivor.enemigos.boss_rey_email import BossEmail
 from sre_survivor.armas.teclado import Teclado
 from sre_survivor.personajes.personaje_sre import Personajesre
 from sre_survivor.interfaz.interfaz import Interfaz
@@ -59,6 +60,12 @@ tiempo_entre_hackers = 3000
 ultimo_gestor_cambios = 0
 tiempo_entre_gestores_cambios = 11000
 
+# Boss rey email
+boss_email = None
+boss_email_generado = False
+#tiempo_aparicion_boss_email = 30000
+tiempo_aparicion_boss_email = 10000
+
 # Teclado
 teclados = []
 ultimo_disparo_teclado = pygame.time.get_ticks()
@@ -112,6 +119,27 @@ def crear_gestor_cambios():
     posicion = obtener_posicion_en_borde(GestorCambios)
     enemigos.append(GestorCambios(posicion["x"], posicion["y"]))
 
+def crear_boss_email():
+    global boss_email, boss_email_generado
+
+    x = ANCHOPANTALLA - BossEmail.ancho
+    y = ALTOPANTALLA // 2 - BossEmail.alto // 2
+
+    boss_email = BossEmail(
+        x,
+        y,
+        ANCHOPANTALLA // 2,
+        ALTOPANTALLA // 2
+    )
+    enemigos.append(boss_email)
+    boss_email_generado = True
+
+def hay_boss_email_activo():
+    return boss_email is not None and not boss_email.esta_derrotado()
+
+def boss_email_bloquea_generacion_enemigos():
+    return hay_boss_email_activo() and boss_email.debe_bloquear_generacion_enemigos()
+
 def obtener_enemigo_mas_cercano(origen_x, origen_y):
     enemigo_mas_cercano = None
     distancia_mas_cercana = None
@@ -131,9 +159,9 @@ def obtener_enemigo_mas_cercano(origen_x, origen_y):
 
     return enemigo_mas_cercano
 
-def dibujar_enemigos():
+def dibujar_enemigos(tiempo_actual):
     for enemigo_actual in enemigos:
-        enemigo_actual.dibujar(pantalla)
+        enemigo_actual.dibujar(pantalla, tiempo_actual)
 
 def dibujar_teclados():
     for t in teclados:
@@ -177,6 +205,25 @@ def mover_enemigos(tiempo_actual):
     for enemigo_actual in enemigos:
         enemigo_actual.mover_hacia(personaje_sre.x, personaje_sre.y, tiempo_actual)
 
+        if hasattr(enemigo_actual, "actualizar"):
+            enemigo_actual.actualizar(tiempo_actual)
+
+def eliminar_enemigos_derrotados():
+    global enemigos, puntaje, boss_email
+
+    enemigos_sobrevivientes = []
+
+    for enemigo_actual in enemigos:
+        if enemigo_actual.esta_derrotado():
+            puntaje += enemigo_actual.puntos
+
+            if enemigo_actual is boss_email:
+                boss_email = None
+        else:
+            enemigos_sobrevivientes.append(enemigo_actual)
+
+    enemigos = enemigos_sobrevivientes
+
 def detectar_colisiones(): # Detecta colisiones entre enemigos y teclados
     global enemigos, teclados, puntaje
 
@@ -194,10 +241,6 @@ def detectar_colisiones(): # Detecta colisiones entre enemigos y teclados
                 teclado_choco = True
                 enemigo_actual.recibir_golpe(teclado_actual.daño)
                 sonido_golpe.play()
-
-                if enemigo_actual.esta_derrotado():
-                    puntaje += 1
-                    enemigos_sobrevivientes.remove(enemigo_actual)
 
                 break # Salir del bucle interno para evitar colisiones con otros enemigos
 
@@ -234,6 +277,9 @@ def detectar_colisiones_personaje(tiempo_actual):
                     enemigo_actual.aturdir(tiempo_actual)
                     sonido_golpe.play()
 
+            elif isinstance(enemigo_actual, BossEmail):
+                break
+
             if enemigo_actual.desaparece_al_colisionar_con_personaje:
                 enemigo_colisionado = enemigo_actual
 
@@ -261,15 +307,19 @@ def actualizar_juego(tiempo_actual):
     # Movimiento de los enemigos
     mover_enemigos(tiempo_actual)
 
-    # Aparición automática de hackers cada 3 segundos
-    if tiempo_actual - ultimo_hacker >= tiempo_entre_hackers:
-        crear_hacker()
-        ultimo_hacker = tiempo_actual
+    if not boss_email_generado and tiempo_actual - tiempo_inicio >= tiempo_aparicion_boss_email:
+        crear_boss_email()
+        
+    if not boss_email_bloquea_generacion_enemigos():
+        # Aparición automática de hackers cada 3 segundos
+        if tiempo_actual - ultimo_hacker >= tiempo_entre_hackers:
+            crear_hacker()
+            ultimo_hacker = tiempo_actual
 
-    # Aparición automática de gestores de cambios con menor frecuencia
-    if tiempo_actual - ultimo_gestor_cambios >= tiempo_entre_gestores_cambios:
-        crear_gestor_cambios()
-        ultimo_gestor_cambios = tiempo_actual
+        # Aparición automática de gestores de cambios con menor frecuencia
+        if tiempo_actual - ultimo_gestor_cambios >= tiempo_entre_gestores_cambios:
+            crear_gestor_cambios()
+            ultimo_gestor_cambios = tiempo_actual
 
     # Disparo automático de teclados cada segundo
     if tiempo_actual - ultimo_disparo_teclado >= tiempo_entre_teclados:
@@ -279,7 +329,8 @@ def actualizar_juego(tiempo_actual):
     mover_teclados()
     detectar_colisiones()
     detectar_colisiones_personaje(tiempo_actual)
-
+    eliminar_enemigos_derrotados()
+    
     if personaje_sre.esta_muerto():
         terminar_juego(tiempo_actual)
 
@@ -288,11 +339,14 @@ def dibujar_pantalla_juego(tiempo_actual):
     #pantalla.fill((230, 220, 240))
     pantalla.blit(fondo, (0, 0))
     personaje_sre.dibujar(pantalla, tiempo_actual, estado_juego)
-    dibujar_enemigos()
+    dibujar_enemigos(tiempo_actual)
     dibujar_teclados()
     interfaz.dibujar_vidas(pantalla, personaje_sre.vidas)
     interfaz.dibujar_puntaje(pantalla, puntaje)
     interfaz.dibujar_cronometro(pantalla, tiempo_actual, tiempo_inicio, tiempo_fin)
+
+    if hay_boss_email_activo() and boss_email.debe_dibujar_overlay(tiempo_actual):
+        boss_email.dibujar_overlay(pantalla)
 
 def obtener_posicion_boss_fin():
     separacion = 15
