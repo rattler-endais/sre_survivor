@@ -11,15 +11,17 @@
 Si esto te ha sonado a chino, también puedes pulsar en el botón verde que dice **Code** y luego pulsar en ***Download ZIP***. Luego descomprime el archivo zip en el directorio que más rabia te de :-)
 
 # No a las trampas ni a los spoilers
-Si sólo quieres probar el juego no hagas trampas, no mires dentro de la carpeta del proyecto, porque podria reducir tu experiencia de juego. Luego no me digas que no te lo advertí, avisado quedas.
+Si sólo quieres probar el juego, no hagas trampas, no mires dentro de la carpeta del proyecto, porque podria reducir tu experiencia de juego y diversión. Luego no me digas que no te lo advertí, avisad@ quedas.
 
 # Crea entorno virtual de python (opcional)
 Este juego necesita las librerias de pygame para funcionar. Si no quieres que estas librerias interfieran con tu instalación de python puedes crear un entorno virtual de python en el que instalar estas librerías. Cuando te aburras del juego simplemente podrás eliminar el directorio del entorno virtual. (Junto con el directorio del juego)
 
 Si no sabes crear un entorno virtual y activarlo, puedes revisar esta documentación --> https://fastapi.tiangolo.com/virtual-environments/#create-a-virtual-environment
 
+Y por si acaso esa página no funcionase, te dejo por aqui la documentación oficial de python --> https://docs.python.org/3/library/venv.html
+
 # Instala las dependencias necesarias
-Una vez activado el entorno virtual (si es que lo has creado), ejecuta esto:
+Una vez activado el entorno virtual (si es que lo has creado en el paso anterior), ejecuta esto:
 `pip install pygame`
 
 # Ejecuta el juego
