@@ -25,7 +25,7 @@ Una vez activado el entorno virtual (si es que lo has creado), ejecuta esto:
 # Ejecuta el juego
 Y ahora ya sólo queda disfrutar, y echarse unas risas. Tan sólo ejecuta:
 
-`python sre_survivor.py`
+`python main.py`
 
 Disfruta y dime qué te parece.
 
