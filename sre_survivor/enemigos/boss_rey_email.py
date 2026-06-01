@@ -53,6 +53,8 @@ class BossEmail(Enemigo):
         cargar_imagen_boss("boss_email_move_1.png", tamaño),
         cargar_imagen_boss("boss_email_move_2.png", tamaño),
         cargar_imagen_boss("boss_email_move_3.png", tamaño),
+        cargar_imagen_boss("boss_email_move_4.png", tamaño),
+        cargar_imagen_boss("boss_email_move_5.png", tamaño)
     ]
 
     imagen_damage_50 = cargar_imagen_boss("boss_email_damage_50.png", tamaño)
