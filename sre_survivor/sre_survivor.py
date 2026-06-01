@@ -63,8 +63,8 @@ tiempo_entre_gestores_cambios = 11000
 # Boss rey email
 boss_email = None
 boss_email_generado = False
-#tiempo_aparicion_boss_email = 30000
-tiempo_aparicion_boss_email = 10000
+#tiempo_aparicion_boss_email = 60000
+tiempo_aparicion_boss_email = 5000
 
 # Teclado
 teclados = []
