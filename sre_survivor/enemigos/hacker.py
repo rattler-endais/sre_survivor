@@ -4,7 +4,7 @@ from sre_survivor.assets import imagen
 
 class Hacker(Enemigo):
     imagen = pygame.transform.scale(pygame.image.load(imagen("hacker.png")), (84, 100))
-    velocidad = 0.5
+    velocidad = 3.14
     vida_maxima = 1
     desaparece_al_colisionar_con_personaje = True
 

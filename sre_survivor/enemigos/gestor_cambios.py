@@ -4,7 +4,7 @@ from sre_survivor.assets import imagen
 
 class GestorCambios(Enemigo):
     imagen = pygame.transform.scale(pygame.image.load(imagen("gestorcambios.png")), (124, 112))
-    velocidad = 0.7
+    velocidad = 4.40
     vida_maxima = 2
     desaparece_al_colisionar_con_personaje = False
     tiempo_entre_efectos = 2500

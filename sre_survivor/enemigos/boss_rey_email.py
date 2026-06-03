@@ -31,7 +31,7 @@ class BossEmail(Enemigo):
     tamaño = (130, 130)
 
     imagen = cargar_imagen_boss("boss_email_idle.png", tamaño)
-    velocidad = 0.15
+    velocidad = 0.94
     vida_maxima = 20
     puntos = 10
     desaparece_al_colisionar_con_personaje = False

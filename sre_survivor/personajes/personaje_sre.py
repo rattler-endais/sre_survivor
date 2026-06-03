@@ -29,8 +29,8 @@ class Personajesre:
     }
     imagen_muerto = cargar_imagen_personaje("sre_muerto.png", alto_muerto)
 
-    velocidad = 1.2
-    velocidad_ralentizada = 0.4
+    velocidad = 7.54
+    velocidad_ralentizada = 2.51
     vidas_iniciales = 5
     tiempo_invulnerabilidad = 1000
     tiempo_ralentizacion = 2000

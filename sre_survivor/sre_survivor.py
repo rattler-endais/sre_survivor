@@ -10,11 +10,16 @@ from sre_survivor.assets import imagen, sonido
 
 ANCHOPANTALLA = 800
 ALTOPANTALLA = 600
+
+MEDIR_FPS_NATURAL = False # Medidión de FPS natural para ajustar la velocidad de movimiento y el límite de FPS
+FPS = 60 # Límite de FPS para evitar discrepancia de velocidades de ejecución
+
 print("Inicio de SRE Survivor")
 print("Desarrollado por Sr. Muñoz")
 
 # Inicializar a Pygame
 pygame.init()
+clock = pygame.time.Clock() # Definir reloj para controlar FPS
 
 # Sonidos
 pygame.mixer.music.load(sonido("MusicaFondo.mp3"))
@@ -408,6 +413,12 @@ def gestionar_huevo_de_pascua():
 
 # Loop del juego
 se_ejecuta = True
+
+# Medidión de FPS natural para ajustar la velocidad de movimiento y el límite de FPS
+frames_medidos = 0
+inicio_medicion_fps = pygame.time.get_ticks()
+duracion_medicion_fps = 5000
+
 while se_ejecuta:
     tiempo_actual = pygame.time.get_ticks()
 
@@ -439,6 +450,17 @@ while se_ejecuta:
         gestionar_huevo_de_pascua()
 
     pygame.display.update() # Actualizar la pantalla
+
+    if MEDIR_FPS_NATURAL:
+        frames_medidos += 1
+        tiempo_medicion = tiempo_actual - inicio_medicion_fps
+
+        if tiempo_medicion >= duracion_medicion_fps:
+            fps_natural = frames_medidos / (tiempo_medicion / 1000)
+            print(f"FPS natural aproximado: {fps_natural:.2f}")
+            se_ejecuta = False
+    else:
+        clock.tick(FPS) # Limitar FPS para sincronización
 
 pygame.quit()
 print("Fin del juego")

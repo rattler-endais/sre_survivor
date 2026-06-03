@@ -6,7 +6,7 @@ class Teclado:
     ancho = 80
     alto = int(imagen_original.get_height() * ancho / imagen_original.get_width())
     imagen = pygame.transform.scale(imagen_original, (ancho, alto))
-    velocidad = 1.5
+    velocidad = 9.42
     daño = 1
 
     def __init__(self, x, y, velocidad_x, velocidad_y):
