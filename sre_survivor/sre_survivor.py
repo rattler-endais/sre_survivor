@@ -3,6 +3,7 @@ import random
 from sre_survivor.enemigos.hacker import Hacker
 from sre_survivor.enemigos.gestor_cambios import GestorCambios
 from sre_survivor.enemigos.boss_rey_email import BossEmail
+from sre_survivor.enemigos.vampire_mail import VampireMail
 from sre_survivor.armas.teclado import Teclado
 from sre_survivor.personajes.personaje_sre import Personajesre
 from sre_survivor.interfaz.interfaz import Interfaz
@@ -68,8 +69,9 @@ tiempo_entre_gestores_cambios = 11000
 # Boss rey email
 boss_email = None
 boss_email_generado = False
-#tiempo_aparicion_boss_email = 60000
-tiempo_aparicion_boss_email = 5000
+tiempo_aparicion_boss_email = 60000
+ultimo_vampiremail = 0
+tiempo_entre_vampiremails = 1500
 
 # Teclado
 teclados = []
@@ -138,6 +140,14 @@ def crear_boss_email():
     )
     enemigos.append(boss_email)
     boss_email_generado = True
+
+def crear_vampiremail():
+    enemigos.append(
+        VampireMail.crear_desde_borde_aleatorio(
+            ANCHOPANTALLA,
+            ALTOPANTALLA
+        )
+    )
 
 def hay_boss_email_activo():
     return boss_email is not None and not boss_email.esta_derrotado()
@@ -267,6 +277,36 @@ def detectar_colisiones_personaje(tiempo_actual):
         enemigo_rect = enemigo_actual.obtener_rect()
 
         if personaje_rect.colliderect(enemigo_rect): # Si el personaje colisiona con el enemigo
+            if isinstance(enemigo_actual, (Hacker, VampireMail)):
+                if personaje_sre.es_invulnerable(tiempo_actual):
+                    return
+
+                personaje_sre.recibir_golpe(tiempo_actual)
+                sonido_vida_perdida.play()
+
+            elif isinstance(enemigo_actual, GestorCambios):
+                if enemigo_actual.puede_aplicar_efecto(tiempo_actual):
+                    personaje_sre.ralentizar(tiempo_actual)
+                    enemigo_actual.registrar_efecto(tiempo_actual)
+                    enemigo_actual.empujar_desde(personaje_sre.x, personaje_sre.y)
+                    enemigo_actual.aturdir(tiempo_actual)
+                    sonido_golpe.play()
+
+            elif isinstance(enemigo_actual, BossEmail):
+                break
+
+            if enemigo_actual.desaparece_al_colisionar_con_personaje:
+                enemigo_colisionado = enemigo_actual
+
+            break
+
+    personaje_rect = personaje_sre.obtener_rect()
+    enemigo_colisionado = None
+
+    for enemigo_actual in enemigos:
+        enemigo_rect = enemigo_actual.obtener_rect()
+
+        if personaje_rect.colliderect(enemigo_rect): # Si el personaje colisiona con el enemigo
             if isinstance(enemigo_actual, Hacker):
                 if personaje_sre.es_invulnerable(tiempo_actual):
                     return
@@ -307,7 +347,7 @@ def terminar_juego(tiempo_actual):
     pygame.mixer.music.stop()
 
 def actualizar_juego(tiempo_actual):
-    global ultimo_hacker, ultimo_gestor_cambios, ultimo_disparo_teclado
+    global ultimo_hacker, ultimo_gestor_cambios, ultimo_disparo_teclado, ultimo_vampiremail
 
     # Movimiento de los enemigos
     mover_enemigos(tiempo_actual)
@@ -315,6 +355,11 @@ def actualizar_juego(tiempo_actual):
     if not boss_email_generado and tiempo_actual - tiempo_inicio >= tiempo_aparicion_boss_email:
         crear_boss_email()
         
+    if hay_boss_email_activo() and boss_email.puede_generar_vampiremails():
+        if tiempo_actual - ultimo_vampiremail >= tiempo_entre_vampiremails:
+            crear_vampiremail()
+            ultimo_vampiremail = tiempo_actual
+    
     if not boss_email_bloquea_generacion_enemigos():
         # Aparición automática de hackers cada 3 segundos
         if tiempo_actual - ultimo_hacker >= tiempo_entre_hackers:

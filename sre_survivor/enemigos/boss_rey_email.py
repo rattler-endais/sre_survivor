@@ -2,30 +2,11 @@ import pygame
 from sre_survivor.assets import imagen as ruta_imagen
 from sre_survivor.enemigos.enemigo import Enemigo
 
-"""Imagen inicial quieto    boss_email_idle.png
-Movimiento 1    boss_email_move_1.png
-Movimiento 2    boss_email_move_2.png
-Movimiento 3    boss_email_move_3.png
-Daño 50%    boss_email_damage_50.png
-Daño 80%    boss_email_damage_80.png
-Daño 90%    boss_email_damage_90.png
-Explosión frame 1   boss_email_explosion_1.png
-Explosión frame 2   boss_email_explosion_2.png
-Explosión frame 3   boss_email_explosion_3.png
-Explosión frame 4   boss_email_explosion_4.png
-Explosión frame 5   boss_email_explosion_5.png
-Imagen que tapa la pantalla boss_email_overlay.png
-Muerte frame 1  boss_email_death_1.png
-Muerte frame 2  boss_email_death_2.png
-Muerte frame 3  boss_email_death_3.png
-Muerte frame 4  boss_email_death_4.png"""
-
 def cargar_imagen_boss(nombre_archivo, tamaño):
     return pygame.transform.scale(
         pygame.image.load(ruta_imagen(f"enemigos/boss_email/{nombre_archivo}")),
         tamaño
     )
-
 
 class BossEmail(Enemigo):
     tamaño = (130, 130)
@@ -33,7 +14,7 @@ class BossEmail(Enemigo):
     imagen = cargar_imagen_boss("boss_email_idle.png", tamaño)
     velocidad = 0.94
     vida_maxima = 20
-    puntos = 10
+    puntos = 20
     desaparece_al_colisionar_con_personaje = False
 
     nombre = "REY DEL CORREO ELECTRÓNICO"
@@ -274,6 +255,9 @@ class BossEmail(Enemigo):
 
     def debe_bloquear_generacion_enemigos(self):
         return self.estado not in ("muriendo",)
+
+    def puede_generar_vampiremails(self):
+        return self.estado == "reposo"
 
     def debe_dibujar_overlay(self, tiempo_actual):
         return self.estado == "pantalla_inundada" and tiempo_actual < self.overlay_visible_hasta
